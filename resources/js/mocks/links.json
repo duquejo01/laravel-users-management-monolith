@@ -1,0 +1,26 @@
+[
+  {
+    "order": 1,
+    "label": "Dashboard",
+    "href": "/users",
+    "icon": "dashboard"
+  },
+  {
+    "order": 2,
+    "label": "Chats",
+    "href": "#",
+    "icon": "chat"
+  },
+  {
+    "order": 3,
+    "label": "Media",
+    "href": "#",
+    "icon": "photo"
+  },
+  {
+    "order": 4,
+    "label": "Donate ☕",
+    "href": "#",
+    "icon": "heart"
+  }
+]

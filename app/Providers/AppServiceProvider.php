@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\Services\UserService\UserServiceInterface;
+use App\Services\UserService\UserService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->app->bind(
+            UserServiceInterface::class,
+            UserService::class,
+        );
     }
 }

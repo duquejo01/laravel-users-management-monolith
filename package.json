@@ -14,6 +14,8 @@
         "vue": "^3.2.36"
     },
     "dependencies": {
-        "@inertiajs/vue3": "^1.0.11"
+        "@inertiajs/vue3": "^1.0.11",
+        "duquejo-dashboard-lib": "^1.0.11",
+        "pinia": "^2.1.7"
     }
 }
