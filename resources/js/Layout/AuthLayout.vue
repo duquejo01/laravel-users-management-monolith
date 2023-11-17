@@ -54,7 +54,7 @@ const toggleDarkMode = () => uiStore.toggleDarkMode();
 
 const enabledBackwardsNav = computed(() => ({
     active: activeComponent.value !== 'Users/UsersPage',
-    backUrl: '/users',
+    backUrl: '/',
 }));
 
 const onToggleSidebar = () => uiStore.toggleSidebar();
