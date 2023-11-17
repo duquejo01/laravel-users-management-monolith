@@ -53,7 +53,7 @@ const onProfileClick = (id) => {
 }
 
 const onFormSearch = (search) => {
-    router.get('/users', { search }, { replace: true });
+    router.get('/', { search }, { replace: true });
 };
 
 const paginationLinksParsing = computed(() => pagination.value.map( page => {

@@ -5,22 +5,18 @@ declare(strict_types=1);
 namespace App\Services\UserService;
 
 use App\Contracts\Services\UserService\UserServiceInterface;
+use App\Exceptions\UserException;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\Paginator;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
 
 class UserService implements UserServiceInterface
 {
   public function __construct(private readonly User $user){}
 
-  public function findById(string $id): User
-  {
-    return $this->user->query()->where('id', '=', $id)->firstOrFail();
-  }
-
-  public function findByNameWithPagination($search = ''): Paginator
+  public function findByNameWithPagination($search = '', $perPage = 10): Paginator
   {
     return $this->user->query()
       ->when(
@@ -31,7 +27,7 @@ class UserService implements UserServiceInterface
         }
       )
       ->orderBy('updated_at', 'DESC')
-      ->paginate(10)
+      ->paginate($perPage)
       ->through(function ($user) {
         return [
           'id' => $user->id,
@@ -45,13 +41,16 @@ class UserService implements UserServiceInterface
       ->withQueryString();
   }
 
-  public function update(string $id, array $data): bool
+  public function update(string $id, array $data): array
   {
 
-    $user = $this->findById($id);
+    $user = $this->user->query()->where('id', '=', $id)->first();
 
-    if (!$user->exists()) {
-      dd('User not found.');
+    if ( ! $user ) {
+      throw new UserException(
+        'The user does not exist',
+        HttpResponse::HTTP_BAD_REQUEST
+      );
     }
 
     $inputs = [
@@ -67,20 +66,27 @@ class UserService implements UserServiceInterface
       'country' => $data['country'],
       'state' => $data['state'],
       'description' => $data['description'],
-      'password' => $data['password'],
     ];
-
-    if( $inputs['password'] === '') {
-      unset($inputs['password']);
-    }
 
     $isUpdated = $user->update($inputs);
 
-    return $isUpdated;
+    return [
+      'success' => $isUpdated,
+      'user' => $user,
+    ];
   }
 
-  public function store(array $data): bool
+  public function store(array $data): array
   {
+
+    $user = $this->user->query()->where('email', '=', $data['email'])->first();
+
+    if( $user ) {
+      throw new UserException(
+        'The user already exist',
+        HttpResponse::HTTP_CONFLICT
+      );
+    }
 
     $inputs = [
       'name' => $data['name'],
@@ -98,17 +104,36 @@ class UserService implements UserServiceInterface
       'password' => $data['password'],
     ];
 
-    if( $inputs['password'] === '') {
-      unset($inputs['password']);
-    }
-
     $newUser = new User($inputs);
-    return $newUser->save();
+    $isSaved = $newUser->save();
+
+    return [
+      'success' => $isSaved,
+      'users' => $newUser,
+    ];
   }
 
-  public function delete(array $ids): void
+  public function delete(array $ids): array
   {
     $users = $this->user->whereIn('id', $ids);
-    $users->delete();
+
+    if( $users->count() < 1 ) {
+      throw new UserException(
+        'The specified user list was not found',
+        HttpResponse::HTTP_NOT_FOUND
+      );
+    }
+
+    $usersForDeletion = $users->get()->map( function($user) {
+      return collect($user->toArray())
+        ->only(['id', 'name', 'email'])
+        ->all();
+    });
+    $isDeleted = $users->delete();
+
+    return [
+      'success' => $isDeleted,
+      'users' => $usersForDeletion,
+    ];
   }
 }
